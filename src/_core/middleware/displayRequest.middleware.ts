@@ -1,5 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
-import { isEmpty } from "lodash";
+import { isEmpty } from 'lodash';
 import {
   bgMagenta,
   bgWhite,
@@ -7,57 +6,46 @@ import {
   blueBright,
   greenBright,
   yellow,
-} from "colorette";
+} from 'colorette';
 
-export function displayRequest(
-  req: Request,
-  _: Response,
-  next: NextFunction
-): void {
+export function displayRequest(request: Request, requestTimes: Map<string, number>): void {
+  const url = new URL(request.url);
   const timestamp = new Date().toLocaleString();
+  const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
+  const startTime = requestTimes.get(requestId);
+  const elapsedTime = startTime ? Date.now() - startTime : undefined;
+  
   console.log(bgWhite("\n" + "showRequest: " + timestamp));
-  if (!isEmpty(req.originalUrl))
-    console.log(
-      "Request URL:",
-      `${blueBright(req.headers.host ?? "host_not_found")}${blue(
-        req.originalUrl
-      )}`
-    );
-  if (!isEmpty(req.method)) console.log("Method:", yellow(req.method));
-  if (!isEmpty(req.body))
-    console.log("Body:", greenBright(JSON.stringify(req.body, null, 2)));
-  if (!isEmpty(req.params))
-    console.log("Params:", JSON.stringify(req.params, null, 2));
-  if (!isEmpty(req.query))
-    console.log("Query:", JSON.stringify(req.query, null, 2));
-  console.log(bgMagenta("\n"));
-  next();
-}
-
-export function getRequest(req: Request): string {
-  const requestData = {
-    timestamp: new Date().toLocaleString(),
-    url:
-      req.headers?.host && req.originalUrl
-        ? `${req.headers.host}${req.originalUrl}`
-        : undefined,
-    method: !isEmpty(req.method) ? req.method : undefined,
-    body: !isEmpty(req.body) ? req.body : undefined,
-    params: !isEmpty(req.params) ? req.params : undefined,
-    query: !isEmpty(req.query) ? req.query : undefined,
-  };
-
-  // Ensure all properties are explicitly included
-  return JSON.stringify(
-    {
-      timestamp: requestData.timestamp,
-      url: requestData.url || undefined,
-      method: requestData.method || undefined,
-      body: requestData.body || undefined,
-      params: requestData.params || undefined,
-      query: requestData.query || undefined,
-    },
-    null,
-    2
+  console.log("Request ID:", requestId);
+  if (elapsedTime) {
+    console.log("Request Duration:", `${elapsedTime}ms`);
+  }
+  console.log(
+    "Request URL:",
+    `${blueBright(url.host)}${blue(url.pathname + url.search)}`
   );
+  console.log("Method:", yellow(request.method));
+  
+  // Only attempt to parse body for methods that typically have a body
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+    try {
+      const clone = request.clone();
+      clone.json().then(body => {
+        if (!isEmpty(body)) {
+          console.log("Body:", greenBright(JSON.stringify(body, null, 2)));
+        }
+      }).catch(error => {
+        console.log("No JSON body to parse");
+      });
+    } catch (error) {
+      console.log("Error parsing request body:", error);
+    }
+  }
+  
+  const query = Object.fromEntries(url.searchParams);
+  if (!isEmpty(query)) {
+    console.log("Query:", JSON.stringify(query, null, 2));
+  }
+  
+  console.log(bgMagenta("\n"));
 }

@@ -1,4 +1,4 @@
-import { HttpStatusCode } from "./HttpStatusCode";
+import { HttpStatusCode } from "../helper/http-status/common/HttpStatusCode";
 
 /**
  * HTTP Methods used in API routes.

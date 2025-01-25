@@ -1,12 +1,10 @@
-import type { NextFunction, Request, Response, RequestHandler } from "express";
-import type { CustomRequest } from "../helper/interfaces/CustomRequest.interface";
+import Elysia from "elysia";
 
-export const startTimeAddOnRequest: RequestHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  (req as CustomRequest).startTime = Date.now();
-  (res as any).locals.startTime = (req as CustomRequest).startTime;
-  next();
-};
+// Request timing middleware
+export function requestTimingMiddleware() {
+  return new Elysia()
+    .derive((context) => {
+      context.request.headers.set('x-request-start', Date.now().toString());
+      return {};
+    });
+}

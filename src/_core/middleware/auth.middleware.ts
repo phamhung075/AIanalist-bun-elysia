@@ -1,55 +1,47 @@
-import type { NextFunction, Request, Response } from "express";
-import admin from "firebase-admin";
-import _ERROR from "../helper/http-status/error/index";
-
-// Ensure Firebase is initialized
-console.log("✅ Firebase Admin is being initialized");
+import { Elysia, Cookie } from 'elysia'
+import admin from 'firebase-admin'
 
 if (!admin?.apps?.length) {
-  console.log("ℹ️ No Firebase apps detected. Initializing now...");
-  admin?.initializeApp();
+  console.log("ℹ️ Initializing Firebase Admin...")
+  admin?.initializeApp()
 } else {
-  console.log("✅ Firebase Admin is already initialized");
+  console.log("✅ Firebase Admin already initialized")
 }
 
-/**
- * Middleware to authenticate Firebase token from cookies
- */
-// Fonction pour obtenir les tokens des cookies
-export function getTokenCookies(req: Request) {
-  const cookies = req.headers?.cookie?.split('; ') || [];
-  const idToken = cookies.find(cookie => cookie.startsWith('idToken='))?.split('=')[1] || '';
-  const refreshToken = cookies.find(cookie => cookie.startsWith('refreshToken='))?.split('=')[1] || '';
-  return { idToken, refreshToken };
+const getTokenCookies = (cookies: Record<string, Cookie<string | undefined>>) => {
+  const idToken = cookies?.idToken?.value || ''
+  const refreshToken = cookies?.refreshToken?.value || ''
+  return { idToken, refreshToken }
 }
 
-export async function firebaseAuthMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  const { idToken } = getTokenCookies(req);
-  // console.log("req get", req);
+export const firebaseAuth = new Elysia()
+  .derive(({ request, cookie, set }): { token: string | undefined; error?: string } => {
+    const { idToken } = getTokenCookies(cookie)
+    const token = idToken || request.headers.get('authorization')?.split(' ')[1]
+    
+    if (!token) {
+      set.status = 401
+      return { token: undefined, error: 'Unauthorized: No token provided' }
+    }
+    
+    return { token }
+  })
+  .derive(async ({ token, set }) => {
+    if (!token) {
+      set.status = 401
+      return { error: 'Unauthorized: No token provided' }
+    }
 
-  const token = idToken || req.headers.authorization?.split(" ")[1];
-  // console.log("token get", token);
-  if (!token) {
-    return new _ERROR.UnauthorizedError({
-      message: "Unauthorized: No token provided",
-    }).send(res, next);
-  }
-
-  try {
-    const decodedToken: admin.auth.DecodedIdToken = await admin
-      .auth()
-      .verifyIdToken(token);
-    (req as any).user = decodedToken; // Attacher les informations de l'utilisateur à la requête
-    next(); // Passer au middleware ou au gestionnaire de route suivant
-  } catch (error) {
-    console.error("Firebase Auth Error:", error);
-    return new _ERROR.UnauthorizedError({
-      message: "Unauthorized: Invalid token",
-    }).send(res, next);
-  }
-}
-
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token)
+      return { user: decodedToken }
+    } catch (error) {
+      console.error('Firebase Auth Error:', error)
+      set.status = 401
+      return { error: 'Unauthorized: Invalid token' }
+    }
+  })
+  .onError(({ code, error, set }) => {
+    set.status = code === 'VALIDATION' ? 400 : 500
+    return { error: String(error) }
+  })
