@@ -59,7 +59,7 @@ export class AppService {
         const requestId = request.headers.get("x-request-id");
         const startTime = requestId ? requestTimes.get(requestId) : undefined;
         if (requestId) requestTimes.delete(requestId);
-        return errorHandler({ ...finalError, status }, startTime);
+        return errorHandler({ ...finalError, status });
       });
 
     AppService.instance = this;

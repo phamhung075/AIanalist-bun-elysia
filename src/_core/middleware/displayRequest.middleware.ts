@@ -26,21 +26,14 @@ export function displayRequest(request: Request, requestTimes: Map<string, numbe
   );
   console.log("Method:", yellow(request.method));
   
-  // Only attempt to parse body for methods that typically have a body
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
-    try {
-      const clone = request.clone();
-      clone.json().then(body => {
-        if (!isEmpty(body)) {
-          console.log("Body:", greenBright(JSON.stringify(body, null, 2)));
-        }
-      }).catch(error => {
-        console.log("No JSON body to parse");
-      });
-    } catch (error) {
-      console.log("Error parsing request body:", error);
-    }
-  }
+  try {
+    const clone = request.clone();
+    clone.json().then(body => {
+      if (!isEmpty(body)) {
+        console.log("Body:", greenBright(JSON.stringify(body, null, 2)));
+      }
+    });
+  } catch {}
   
   const query = Object.fromEntries(url.searchParams);
   if (!isEmpty(query)) {
