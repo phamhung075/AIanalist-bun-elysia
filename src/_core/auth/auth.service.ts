@@ -7,7 +7,8 @@ import _ERROR from "../helper/http-status/error";
 import { AuthTokens, IAuth, IRegister } from "./auth.interface";
 import AuthRepository from "./auth.repository";
 import { Service } from "typedi";
-
+import _ from "lodash";
+import { Cookie } from "elysia";
 @Service()
 export class AuthService {
   constructor(
@@ -15,17 +16,28 @@ export class AuthService {
     private readonly contactService: ContactService
   ) {}
 
-  async register(registerData: IRegister): Promise<UserCredential> {
+  async register(registerData: IRegister): Promise<boolean> {
     const { email, password, ...contactData } = registerData;
 
     const userCred = await this.authRepository.createUser({ email, password });
+    const isAccountCreated = !_.isEmpty(userCred);
 
-    await this.contactService.createWithId(userCred.user.uid, {
+    if (!isAccountCreated)      
+      throw new _ERROR.NotAcceptableError({ message: "Register failed (1)" });
+    console.log ("Account created:", isAccountCreated);
+
+    const contactCreated = await this.contactService.createWithId(userCred.user.uid, {
       ...contactData,
       email,
     });
-
-    return userCred;
+    const isContactCreated = !_.isEmpty(contactCreated);
+    if (!isContactCreated) {
+      // Delete the user if the contact creation fails
+      await this.authRepository.deleteUser(userCred.user.uid);
+      throw new _ERROR.NotAcceptableError({ message: "Register failed (2)" });
+    }
+    console.log ("Contact created:", isContactCreated);
+    return true;
   }
 
   async login(body: IAuth): Promise<AuthTokens> {
@@ -33,9 +45,6 @@ export class AuthService {
 
     // Appeler le dépôt pour effectuer la connexion
     const { idToken, refreshToken } = await this.authRepository.loginUser(body.email, body.password);
-    // console.log(`✅ Connexion réussie avec l'utilisateur : ${body.email}`);
-    // console.log(`🔄 Token ID : ${idToken}`);
-    // console.log(`🔄 Token Refresh : ${refreshToken}`);
     return { idToken, refreshToken };
   }
 
@@ -76,6 +85,11 @@ export class AuthService {
         message: "Invalid or expired token",
       });
     }
+  }
+
+  async logoutUser(user: DecodedIdToken): Promise<true> {
+    // Appeler le dépôt pour effectuer la connexion
+    return await this.authRepository.logoutUser(user);
   }
 }
 

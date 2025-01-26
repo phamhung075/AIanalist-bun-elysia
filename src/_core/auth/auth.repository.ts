@@ -2,7 +2,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   type UserCredential,
-  getAuth as getClientAuth, // Renamed for clarity
+  getAuth as getClientAuth,
+  sendEmailVerification,
+  signOut, // Renamed for clarity
 } from "firebase/auth";
 
 import {
@@ -15,13 +17,14 @@ import { firebaseAdminAuth } from "../database/firebase-admin-sdk/index";
 import _ERROR from "../helper/http-status/error/index";
 import type { IAuth } from "./auth.interface";
 import { Service } from "typedi";
+import { Cookie } from "elysia";
 
 @Service()
 class AuthRepository {
   private isTestEnvironment: boolean;
   private clientAuth; // For client-side operations
   private adminAuth; // For admin operations
-
+  private tokenBlacklist: Map<string, number> = new Map();
   constructor() {
     this.isTestEnvironment = process.env.NODE_ENV === "test";
     this.clientAuth = getClientAuth(); // Client SDK auth
@@ -36,6 +39,7 @@ class AuthRepository {
         account.password
       );
 
+      await sendEmailVerification(userCredential.user);
       return userCredential;
     } catch (error: any) {
       console.error("Create user error:", error);
@@ -116,6 +120,11 @@ class AuthRepository {
         };
       }
 
+      if (this.tokenBlacklist.has(token)) {
+        throw new _ERROR.UnauthorizedError({
+          message: "Token has been invalidated",
+        });
+      }
       // Use admin auth for token verification
       const decodedToken = await this.adminAuth.verifyIdToken(token);
       return decodedToken;
@@ -203,6 +212,44 @@ class AuthRepository {
       throw new _ERROR.UnauthorizedError({
         message: "Failed to refresh token",
       });
+    }
+  }
+
+  async deleteUser(uid: string): Promise<void> {
+    return await this.adminAuth.deleteUser(uid);
+  }
+
+  async logoutUser(user: DecodedIdToken): Promise<true> {
+    try {
+      const uid = user.uid;
+      await this.adminAuth.getUser(uid);
+
+      // Add current token to blacklist
+      if (this.clientAuth.currentUser) {
+        this.tokenBlacklist.set(user.auth_time.toString(), Date.now());
+      }
+
+      await signOut(this.clientAuth);
+      await this.adminAuth.revokeRefreshTokens(uid);
+      this.cleanExpiredTokens();
+
+      return true;
+    } catch (error: any) {
+      console.error("Logout error:", error);
+      if (error.code === "auth/user-not-found") {
+        throw new _ERROR.NotFoundError({ message: "User not found" });
+      }
+      throw new _ERROR.UnauthorizedError({ message: "Failed to logout user" });
+    }
+  }
+
+  private cleanExpiredTokens(): void {
+    const now = Date.now();
+    for (const [token, timestamp] of this.tokenBlacklist) {
+      if (now - timestamp > 3600000) {
+        // Remove after 1 hour
+        this.tokenBlacklist.delete(token);
+      }
     }
   }
 }
