@@ -1,7 +1,7 @@
 import type { NextFunction, Response } from "express";
 import { HttpStatusCode } from "../common/HttpStatusCode";
 import { StatusCodes } from "../common/StatusCodes";
-import { getStatusText } from "../common/api-config";
+import { getStatusText } from "@/_core/config/api-config";
 
 
 export class ErrorResponse  {

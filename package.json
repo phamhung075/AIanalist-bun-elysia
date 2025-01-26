@@ -6,6 +6,7 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
+    "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/cors": "^1.2.0",
     "@elysiajs/server-timing": "^1.2.0",
     "@types/lodash": "^4.17.14",
@@ -16,7 +17,8 @@
     "firebase-admin": "^13.0.2",
     "helmet": "^8.0.0",
     "lodash": "^4.17.21",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "typedi": "^0.10.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

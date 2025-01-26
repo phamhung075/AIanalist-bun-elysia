@@ -3,6 +3,7 @@ import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import { firebaseAuth } from "@/_core/middleware/auth.middleware";
 import _SUCCESS from "@/_core/helper/http-status/success";
+import authRouter from "@/_core/auth";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,7 +14,9 @@ const loadRoute = async (path: string) => {
 };
 
 export default async function router(app: Elysia) {
-  app.get("/", ({ set }) => {
+  app
+  .use(authRouter())
+  .get("/", ({ set }) => {
     const response = new _SUCCESS.OkSuccess({
       message: "Welcome to AIAnalyst!",
     });
@@ -24,16 +27,14 @@ export default async function router(app: Elysia) {
       });
     }
     return response.getBody();
-  });
+  })
 
-  app.get("/health", ({ set }) => {
+  .get("/health", ({ set }) => {
     const response = new _SUCCESS.OkSuccess({ message: "ok" });
     set.status = response.status;
     return response.getBody();
   });
-
   // Uncomment these once routes are ready
-  // await app.group('/api/auth', app => app.use(await loadRoute(resolve(__dirname, '../_core/auth/index.ts'))));
 
   // await app.group('/api/contact', app =>
   //   app.use(firebaseAuth)

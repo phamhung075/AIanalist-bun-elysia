@@ -1,36 +1,48 @@
+import { firebaseAuth } from "@/_core/middleware/auth.middleware";
+import { Elysia } from "elysia";
+import { ContactData } from "./contact.interface";
+import { contactService } from "./contact.module";
+import { CreateSchema, IdSchema, UpdateSchema } from "./contact.validation";
 
+interface QueryParams {
+  page?: string;
+  limit?: string;
+  sort?: string;
+  order?: string;
+}
 
-import { createHATEOASMiddleware, createRouter } from 'express-route-tracker';
-import { asyncHandler } from '@/_core/helper/asyncHandler/index';
-import { config } from '@/_core/config/dotenv.config';
-import { firebaseAuthMiddleware } from '@/_core/middleware/auth.middleware';
-import { contactController } from './contact.module';
-import { validateCreateDTO, validateIdDTO,  validateUpdateDTO } from './contact.dto';
-import { validatePaginationDTO } from '@/_core/helper/validateZodSchema/Pagnination.dto';
-
-// Create router with source tracking
-const router = createRouter(__filename);
-
-router.use(createHATEOASMiddleware(router, {
-  autoIncludeSameRoute: true,
-  baseUrl: config.baseUrl,
-  includePagination: true,
-  customLinks: {
-      documentation: (_req) => ({
-          rel: 'documentation',
-          href: config.baseUrl+'/docs',
-          method: 'GET',
-          'title': 'API Documentation'
-      })
-  }
-}));
-
-// Define routes without baseApi prefix
-router.post('/', validateCreateDTO, asyncHandler(contactController.create));
-router.get('/', validatePaginationDTO, asyncHandler(contactController.getAll)); // pagination possible http://localhost:3333/api/contact?page=1&limit=2&sort=createdAt&order=desc
-router.get('/:id', firebaseAuthMiddleware, validateIdDTO, asyncHandler(contactController.getById));
-// router.put('/:id', firebaseAuthMiddleware,validateIdDTO, validateCreateDTO, asyncHandler(contactController.replace)); //todo
-router.patch('/:id', firebaseAuthMiddleware, validateIdDTO, validateUpdateDTO, asyncHandler(contactController.update));
-router.delete('/:id', firebaseAuthMiddleware, validateIdDTO, asyncHandler(contactController.delete));
-
-export default router;
+export default function contactRouter(app: Elysia) {
+  return app
+    .post(
+      "/",
+      { schema: { body: CreateSchema } },
+      async ({ body }: { body: ContactData }) => await contactService.create(body)
+    )
+    .get("/", async ({ query }: { query: QueryParams }) => {
+      const { page, limit, sort, order } = query;
+      return await contactService.getAll({
+        page: Number(page) || 1,
+        limit: Number(limit) || 10,
+        sort: sort || "createdAt",
+        order: order || "desc",
+      });
+    })
+    .get(
+      "/:id",
+      { beforeHandle: [firebaseAuth], params: IdSchema },
+      async ({ params }: { params: typeof IdSchema }) =>
+        await contactService.getById(params.id)
+    )
+    .patch(
+      "/:id",
+      { beforeHandle: [firebaseAuth], params: IdSchema, body: UpdateSchema },
+      async ({ params, body }: { params: typeof IdSchema; body: ContactData }) =>
+        await contactService.update(params.id, body)
+    )
+    .delete(
+      "/:id",
+      { beforeHandle: [firebaseAuth], params: IdSchema },
+      async ({ params }: { params: typeof IdSchema }) =>
+        await contactService.delete(params.id)
+    );
+}

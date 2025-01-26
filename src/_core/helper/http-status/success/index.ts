@@ -3,7 +3,7 @@ import { PaginationResult } from "../../interfaces/rest.interface";
 import { HttpStatusCode } from "../common/HttpStatusCode";
 import { StatusCodes } from "../common/StatusCodes";
 
-class SuccessResponse {
+export class SuccessResponse {
     success: boolean;
     message: string;
     data: any;

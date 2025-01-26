@@ -1,7 +1,7 @@
 // contact.repository.ts
 import { Service } from 'typedi';
-import { BaseRepository } from '../_base/crud/BaseRepository';
 import type { IContact } from './contact.interface';
+import { BaseRepository } from '../_core/crud/BaseRepository';
 
 @Service()
 class ContactRepository extends BaseRepository<IContact> {

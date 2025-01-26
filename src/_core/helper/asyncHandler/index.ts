@@ -1,15 +1,30 @@
-import type { NextFunction, Request, RequestHandler, Response } from 'express';
-import { CustomRequest } from '../interfaces/CustomRequest.interface';
-// First, define a type that extends RequestHandler for async functions
-type AsyncRequestHandler = (
-  req: Request | CustomRequest,
-  res: Response,
-  next: NextFunction
-) => Promise<void | any>;
+import { Elysia, Context, Handler } from 'elysia'
+import _ERROR from '../http-status/error'
 
-// The wrapper function needs to handle both sync and async handlers
-export const asyncHandler = 
-  (fn: RequestHandler | AsyncRequestHandler) => 
-  (req: Request, res: Response, next: NextFunction): void => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+type AsyncElysiaHandler<TContext extends Context> = (
+  context: TContext['request']
+) => Promise<any>
+
+export const asyncHandler = <TContext extends Context>(
+  handler: AsyncElysiaHandler<TContext>
+): Handler<TContext> => {
+  return async (context) => {
+    try {
+      return await handler(context.request)
+    } catch (error) {
+      return error instanceof Error
+    }
+  }
+}
+
+// Usage example:
+/*
+const app = new Elysia()
+
+app.get('/example', 
+  asyncHandler(async ({ body, set }) => {
+    const data = await someAsyncOperation()
+    return { data }
+  })
+)
+*/

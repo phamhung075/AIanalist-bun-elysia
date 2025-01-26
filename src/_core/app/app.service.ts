@@ -135,7 +135,12 @@ export class AppService {
       await testFirestoreAccess();
       this.setupGlobalErrorHandlers();
 
-      await this.app.listen(this.port);
+      await this.app.listen(this.port, () => {
+        console.log('Routes:')
+        app.routes.forEach(route => {
+          console.log(`${route.method} ${route.path}`)
+        })
+      })
       this.logger.info(`Server started on port ${this.port} in ${env} mode`);
 
       if (config.env === "production") {

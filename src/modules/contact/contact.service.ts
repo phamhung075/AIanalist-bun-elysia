@@ -1,9 +1,9 @@
 // contact.service.ts
 
 import { Service } from 'typedi';
-import { BaseService } from "../_base/crud/BaseService";
 import type { IContact } from "./contact.interface";
 import type ContactRepository from "./contact.repository";
+import { BaseService } from '../_core/crud/BaseService';
 
 
 @Service()

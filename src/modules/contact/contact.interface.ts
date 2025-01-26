@@ -1,6 +1,10 @@
 // contact.interface.ts
-export interface IContact {
-  id?: string;
+
+
+export interface ContactId {
+  id: string;
+}
+export interface ContactData {
   firstName: string;
   lastName: string;
   email: string;
@@ -10,6 +14,10 @@ export interface IContact {
   city?: string;
   country?: string;
   message?: string;
+}
+
+export interface IContact extends ContactId, ContactData {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
