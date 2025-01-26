@@ -4,9 +4,10 @@ import _SUCCESS, { SuccessResponse } from "../helper/http-status/success";
 import { IRegister } from "./auth.interface";
 import { authService } from "./auth.module";
 import { LoginSchema, RegisterSchema } from "./auth.validation";
+import { API_CONFIG } from '../config/api-config';
 
 export default async function authRouter() {
-  const route = new Elysia({ prefix: "/auth" })
+  const route = new Elysia({ prefix: API_CONFIG.PREFIX+"/auth" })
     .use(cookie());
 
   return route

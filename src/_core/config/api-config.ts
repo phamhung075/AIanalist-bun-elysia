@@ -1,4 +1,5 @@
 import { HttpStatusCode } from "../helper/http-status/common/HttpStatusCode";
+import { config } from "./dotenv.config";
 
 /**
  * HTTP Methods used in API routes.
@@ -26,8 +27,20 @@ const API_CONFIG = {
     },
     CORS: {
         ORIGINS: {
-            DEVELOPMENT: ['http://localhost:3333', 'http://localhost:4444'],
-            PRODUCTION: ['http://localhost:3333', 'http://localhost:4444', 'http://192.168.0.21:4444'], // Update with your production URL
+            DEVELOPMENT: [
+                'http://'+ config.host + ':' + config.port, 
+                'http://'+ config.host + ':' + config.port_frontend],
+            PRODUCTION: [
+                'http://'+ config.host + ':' + config.port, 
+                'http://'+ config.host + ':' + config.port_frontend,
+                'http://'+ config.ip + ':' + config.port, 
+                'http://'+ config.ip_frontend + ':' + config.port, 
+
+                'https://'+ config.host + ':' + config.port, 
+                'https://'+ config.host + ':' + config.port_frontend,
+                'https://'+ config.ip + ':' + config.port, 
+                'https://'+ config.ip_frontend + ':' + config.port, 
+            ],
         },
         ALLOWED_HEADERS: ['Authorization', 'Content-Type', 'X-Requires-Auth', 'Origin'],
         EXPOSED_HEADERS: ['Content-Range', 'X-Content-Range', 'set-cookie'],
@@ -95,17 +108,6 @@ const CONTENT_TYPE = {
 export type ContentType = keyof typeof CONTENT_TYPE;
 
 
-function setResponseType(type: ContentType) {
-    return CONTENT_TYPE[type];
-}
-
-function handleRequest(method: HttpMethod) {
-    switch (method) {
-        case HTTP_METHODS.GET:
-            console.log('Handling GET request');
-            break;
-    }
-}
 
 function getStatusText(code: number): string {
     return Object.entries(HttpStatusCode)
@@ -115,5 +117,6 @@ function getStatusText(code: number): string {
 export {
     getStatusText,
     API_CONFIG,
-    CONTENT_TYPE, handleRequest, HTTP_METHODS, setResponseType
+    CONTENT_TYPE, 
+    HTTP_METHODS
 };

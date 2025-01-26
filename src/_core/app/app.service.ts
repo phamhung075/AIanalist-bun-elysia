@@ -1,4 +1,4 @@
-import { config } from "@config/dotenv.config";
+import { config, showConfig } from "@config/dotenv.config";
 import { serverTiming } from "@elysiajs/server-timing";
 import { blue, green, yellow } from "colorette";
 import { Elysia } from "elysia";
@@ -11,7 +11,6 @@ import { SimpleLogger } from "../logger/simple-logger";
 import { errorHandler } from "../middleware/errorHandler";
 import { displayRequest } from "../middleware/displayRequest.middleware";
 import router from "@/modules";
-
 const env = config.env;
 const pathToEnvFile = path.resolve(
   __dirname,
@@ -19,6 +18,8 @@ const pathToEnvFile = path.resolve(
 );
 const envFile = path.resolve(pathToEnvFile);
 
+
+console.log(showConfig()); // Add console.log here
 console.log(green(`Loading environment from ${blue(envFile)}`));
 console.log(
   green(

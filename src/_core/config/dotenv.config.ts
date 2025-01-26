@@ -25,7 +25,7 @@ try {
 }
 
 // App configuration object
-export const config = {
+const config = {
   appName: name || 'Unknown App',
   appVersion: version || 'Unknown Version',
   baseApi: process.env.BASE_API || '/undefined',
@@ -33,10 +33,13 @@ export const config = {
   mode: process.env.MODE || 'development',
   port: process.env.PORT || 3000,
   host: process.env.HOST || 'localhost',
+  port_frontend: process.env.PORT_FRONTEND || 4001,
+  ip: process.env.IP || '127.0.0.1',
+  ip_frontend: process.env.IP_FRONTEND || '127.0.0.1',
   dbUri: process.env.DATABASE_URI || 'mongodb://localhost:27017/mydatabase',
   dbName: process.env.DATABASE_NAME || 'mydatabase',
   logDir: process.env.LOG_DIR || path.join(process.cwd(), 'logs'),
-  apiFrontend: process.env.API_FRONTEND || 'localhost',
+  host_frontend: process.env.HOST_FRONTEND || 'localhost',
   get baseUrl() {
     return this.mode === 'development'
       ? `${this.host}:${this.port}`
@@ -45,7 +48,7 @@ export const config = {
 } as const;
 
 // Firebase configuration
-export const firebaseConfig = {
+const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.FIREBASE_AUTH_DOMAIN,
   databaseURL: process.env.FIREBASE_DATABASE_URL,
@@ -57,7 +60,7 @@ export const firebaseConfig = {
 } as const;
 
 // Display configuration status
-export function showConfig(): string {
+function showConfig(): string {
   if (isEmpty(config)) {
     return '❌ Config not loaded';
   } else {
@@ -71,3 +74,4 @@ export function showConfig(): string {
 // Type definitions for config
 export type Config = typeof config;
 export type FirebaseConfig = typeof firebaseConfig;
+export { config, firebaseConfig, showConfig };
