@@ -12,7 +12,7 @@ export default async function authRouter() {
   return route
     .post(
       "/register",
-      async ({ body }): Promise<SuccessResponse> => {
+      async ({ body }: { body: IRegister }): Promise<SuccessResponse> => {
         const result = await authService.register(body);
         return new _SUCCESS.OkSuccess({ data: result }).getBody();
       },
