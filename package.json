@@ -9,6 +9,7 @@
     "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/cors": "^1.2.0",
     "@elysiajs/server-timing": "^1.2.0",
+    "@faker-js/faker": "^9.4.0",
     "@types/lodash": "^4.17.14",
     "colorette": "^2.0.20",
     "cors": "^2.8.5",
