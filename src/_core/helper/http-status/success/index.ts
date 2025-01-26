@@ -75,39 +75,39 @@ export class SuccessResponse {
         return this;
     }
 
-    setHeader(headers: Record<string, string | string[]>) {
-        if (!this.options.headers) {
-            this.options.headers = {};
-        }
+    // setHeader(headers: Record<string, string | string[]>) {
+    //     if (!this.options.headers) {
+    //         this.options.headers = {};
+    //     }
 
-        Object.entries(headers).forEach(([key, value]) => {
-            const normalizedKey = this.normalizeHeaderKey(key);
+    //     Object.entries(headers).forEach(([key, value]) => {
+    //         const normalizedKey = this.normalizeHeaderKey(key);
             
-            if (normalizedKey === 'set-cookie') {
-                if (!this.options.headers['Set-Cookie']) {
-                    this.options.headers['Set-Cookie'] = [];
-                }
+    //         if (normalizedKey === 'set-cookie') {
+    //             if (!this.options.headers['Set-Cookie']) {
+    //                 this.options.headers['Set-Cookie'] = [];
+    //             }
                 
-                if (Array.isArray(this.options.headers['Set-Cookie'])) {
-                    const newCookies = Array.isArray(value) ? value : [value];
-                    this.options.headers['Set-Cookie'] = [
-                        ...this.options.headers['Set-Cookie'],
-                        ...newCookies
-                    ];
-                } else {
-                    this.options.headers['Set-Cookie'] = Array.isArray(value) ? value : [value];
-                }
-            } else {
-                this.options.headers[key] = value;
-            }
-        });
+    //             if (Array.isArray(this.options.headers['Set-Cookie'])) {
+    //                 const newCookies = Array.isArray(value) ? value : [value];
+    //                 this.options.headers['Set-Cookie'] = [
+    //                     ...this.options.headers['Set-Cookie'],
+    //                     ...newCookies
+    //                 ];
+    //             } else {
+    //                 this.options.headers['Set-Cookie'] = Array.isArray(value) ? value : [value];
+    //             }
+    //         } else {
+    //             this.options.headers[key] = value;
+    //         }
+    //     });
     
-        return this;
-    }
+    //     return this;
+    // }
 
-    private normalizeHeaderKey(key: string): string {
-        return key.toLowerCase();
-    }
+    // private normalizeHeaderKey(key: string): string {
+    //     return key.toLowerCase();
+    // }
 
     setData(data: any) {
         this.data = data;

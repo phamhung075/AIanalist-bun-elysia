@@ -1,19 +1,18 @@
+import { cookie } from '@elysiajs/cookie';
 import { Elysia } from "elysia";
-import { cookie } from '@elysiajs/cookie'
-import { UserCredential } from "firebase/auth";
+import _SUCCESS, { SuccessResponse } from "../helper/http-status/success";
 import { IRegister } from "./auth.interface";
 import { authService } from "./auth.module";
 import { LoginSchema, RegisterSchema } from "./auth.validation";
-import _SUCCESS, { SuccessResponse } from "../helper/http-status/success";
 
 export default async function authRouter() {
-  const route = new Elysia({ prefix: "api/v1/auth" })
+  const route = new Elysia({ prefix: "/auth" })
     .use(cookie());
 
   return route
     .post(
       "/register",
-      async ({ body }: { body: IRegister }): Promise<SuccessResponse> => {
+      async ({ body }): Promise<SuccessResponse> => {
         const result = await authService.register(body);
         return new _SUCCESS.OkSuccess({ data: result }).getBody();
       },
